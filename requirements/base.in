@@ -1,0 +1,28 @@
+# Direct production (base) dependencies (previously common.txt, unpinned)
+
+bleach
+Bootstrap-Flask
+email_validator
+Flask
+Flask-HTTPAuth
+Flask-Login
+Flask-Mail
+Flask-Migrate
+Flask-Moment
+Flask-PageDown
+Flask-SQLAlchemy
+Flask-SSLify
+Flask-WTF
+itsdangerous
+Markdown
+MarkupSafe
+# PostgreSQL adapter (comment out if not using PostgreSQL)
+psycopg2-binary
+python-dateutil
+python-dotenv
+python-editor
+SQLAlchemy
+tzdata
+visitor
+webencodings
+WTForms

@@ -1,0 +1,4 @@
+-r base.in
+# Heroku specific additions
+Flask-SSLify
+psycopg2-binary

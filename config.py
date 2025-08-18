@@ -42,7 +42,7 @@ class TestingConfig(Config):
 class ProductionConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'data.sqlite')
-    SERVER_NAME = os.environ['SERVER_NAME']  # configure the domain name in use
+    SERVER_NAME = os.environ.get('SERVER_NAME') or "127.0.0.1:5060"
 
     @classmethod
     def init_app(cls, app):

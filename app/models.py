@@ -1,7 +1,8 @@
 from datetime import datetime
 import hashlib
 from werkzeug.security import generate_password_hash, check_password_hash
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+import time
+from itsdangerous import URLSafeTimedSerializer as Serializer
 from markdown import markdown
 import bleach
 from flask import current_app, request, url_for
@@ -137,8 +138,8 @@ class User(UserMixin, db.Model):
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    def generate_confirmation_token(self, expiration=3600):
-        s = Serializer(current_app.config['SECRET_KEY'], expiration)
+    def generate_confirmation_token(self, expiration=None):
+        s = Serializer(current_app.config['SECRET_KEY'], salt='salft-for-polaris')
         return s.dumps({'confirm': self.id}).decode('utf-8')
 
     def confirm(self, token):
@@ -153,8 +154,8 @@ class User(UserMixin, db.Model):
         db.session.add(self)
         return True
 
-    def generate_reset_token(self, expiration=3600):
-        s = Serializer(current_app.config['SECRET_KEY'], expiration)
+    def generate_reset_token(self, expiration=None):
+        s = Serializer(current_app.config['SECRET_KEY'], salt='salft-for-polaris')
         return s.dumps({'reset': self.id}).decode('utf-8')
 
     @staticmethod
@@ -171,8 +172,8 @@ class User(UserMixin, db.Model):
         db.session.add(user)
         return True
 
-    def generate_email_change_token(self, new_email, expiration=3600):
-        s = Serializer(current_app.config['SECRET_KEY'], expiration)
+    def generate_email_change_token(self, new_email, expiration=None):
+        s = Serializer(current_app.config['SECRET_KEY'], salt='salft-for-polaris')
         return s.dumps(
             {'change_email': self.id, 'new_email': new_email}).decode('utf-8')
 
@@ -253,19 +254,18 @@ class User(UserMixin, db.Model):
         }
         return json_user
 
-    def generate_auth_token(self, expiration):
-        s = Serializer(current_app.config['SECRET_KEY'],
-                       expires_in=expiration)
-        return s.dumps({'id': self.id}).decode('utf-8')
+    def generate_auth_token(self, expiration=None):
+        s = Serializer(current_app.config['SECRET_KEY'], salt='salft-for-polaris')
+        return s.dumps({'id': self.id})
 
     @staticmethod
     def verify_auth_token(token):
-        s = Serializer(current_app.config['SECRET_KEY'])
+        s = Serializer(current_app.config['SECRET_KEY'], salt='salft-for-polaris')
         try:
             data = s.loads(token)
         except:
             return None
-        return User.query.get(data['id'])
+        return User.query.get(data.get('id'))
 
     def __repr__(self):
         return '<User %r>' % self.username
