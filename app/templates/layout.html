@@ -1,38 +1,25 @@
-{% block layout -%}
 <!DOCTYPE html>
-<html{% block html_attribs %}{% endblock html_attribs %}>
-    {%- block html %}
-
-    <head>
-        {%- block head %}
-
-        {%- block metas %}
-        <!-- Required meta tags -->
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <meta name="keywords" content="Serial Port Utility, Serial, 友善串口调试助手, 串口调试助手">
-        <meta name="description" content="友善串口调试助手官方网站。Serial Port Utility official website">
-        <meta name="author" content="Alithon Studio">
-        {%- endblock metas %}
-
-        <title>{% block title %}{{title|default}}{% endblock title %}</title>
-
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    {%- block metas %}
+    {%- endblock metas %}
+    <title>{% block title %}{{ title|default('Flasky') }}{% endblock title %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css', v='20260401') }}">
+    {%- block head %}
     {%- endblock head %}
-    </head>
-    <body{% block body_attribs %}{% endblock body_attribs %}>
-        {% block body -%}
-        {% block navbar %}
-        {%- endblock navbar %}
-        {% block content -%}
-        {%- endblock content %}
-
-        {% block scripts %}
-        {%- endblock scripts %}
-
-        <!-- endblock body -->
-        {%- endblock body %}
-        </body>
-        {%- endblock html %}
-
-        </html>
-        {% endblock layout -%}
+</head>
+<body{% block body_attribs %}{% endblock body_attribs %}>
+    {% block body -%}
+    {% block navbar %}
+    {%- endblock navbar %}
+    {% block content -%}
+    {%- endblock content %}
+    {% block scripts %}
+    <script src="{{ url_for('static', filename='vendor/popper/popper.min.js', v='20260401') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.min.js', v='20260401') }}"></script>
+    {%- endblock scripts %}
+    {%- endblock body %}
+</body>
+</html>

@@ -5,7 +5,7 @@
 {% block title %}Flasky{% endblock %}
 
 {% block page_content %}
-<div class="page-header">
+<div class="pb-3 mb-4 border-bottom">
     <h1>Hello, {% if current_user.is_authenticated %}{{ current_user.username }}{% else %}Stranger{% endif %}!</h1>
 </div>
 <div>
@@ -14,16 +14,18 @@
     {% endif %}
 </div>
 <div class="post-tabs">
-    <ul class="nav nav-tabs">
-        <li{% if not show_followed %} class="active"{% endif %}><a href="{{ url_for('.show_all') }}">All</a></li>
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item"><a class="nav-link{% if not show_followed %} active{% endif %}"
+                href="{{ url_for('.show_all') }}">All</a></li>
         {% if current_user.is_authenticated %}
-        <li{% if show_followed %} class="active"{% endif %}><a href="{{ url_for('.show_followed') }}">Followed</a></li>
+        <li class="nav-item"><a class="nav-link{% if show_followed %} active{% endif %}"
+                href="{{ url_for('.show_followed') }}">Followed</a></li>
         {% endif %}
     </ul>
     {% include '_posts.html' %}
 </div>
 {% if pagination %}
-<div class="pagination">
+<div class="mt-3">
     {{ macros.pagination_widget(pagination, '.index') }}
 </div>
 {% endif %}
@@ -31,5 +33,6 @@
 
 {% block scripts %}
 {{ super() }}
-{{ pagedown.include_pagedown() }}
+<script src="{{ url_for('static', filename='vendor/pagedown/Markdown.Converter.min.js', v='20260401') }}"></script>
+<script src="{{ url_for('static', filename='vendor/pagedown/Markdown.Sanitizer.min.js', v='20260401') }}"></script>
 {% endblock %}

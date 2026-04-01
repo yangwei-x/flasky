@@ -4,13 +4,13 @@
 {% block title %}Flasky - Comment Moderation{% endblock %}
 
 {% block page_content %}
-<div class="page-header">
+<div class="pb-3 mb-4 border-bottom">
     <h1>Comment Moderation</h1>
 </div>
 {% set moderate = True %}
 {% include '_comments.html' %}
 {% if pagination %}
-<div class="pagination">
+<div class="mt-3">
     {{ macros.pagination_widget(pagination, '.moderate') }}
 </div>
 {% endif %}

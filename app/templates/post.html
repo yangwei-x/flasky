@@ -14,7 +14,7 @@
 {% endif %}
 {% include '_comments.html' %}
 {% if pagination %}
-<div class="pagination">
+<div class="mt-3">
     {{ macros.pagination_widget(pagination, '.post', fragment='#comments', id=posts[0].id) }}
 </div>
 {% endif %}

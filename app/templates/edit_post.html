@@ -4,7 +4,7 @@
 {% block title %}Flasky - Edit Post{% endblock %}
 
 {% block page_content %}
-<div class="page-header">
+<div class="pb-3 mb-4 border-bottom">
     <h1>Edit Post</h1>
 </div>
 <div>
@@ -14,5 +14,6 @@
 
 {% block scripts %}
 {{ super() }}
-{{ pagedown.include_pagedown() }}
+<script src="{{ url_for('static', filename='vendor/pagedown/Markdown.Converter.min.js', v='20260401') }}"></script>
+<script src="{{ url_for('static', filename='vendor/pagedown/Markdown.Sanitizer.min.js', v='20260401') }}"></script>
 {% endblock %}
