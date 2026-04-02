@@ -130,7 +130,7 @@ FLUSH PRIVILEGES;
 For production/remote access:
 ```sql
 CREATE SCHEMA `flasky` DEFAULT CHARACTER SET utf8mb4;
-CREATE USER 'flasky'@'%' IDENTIFIED BY 'flasky.2025';
+CREATE USER 'flasky'@'%' IDENTIFIED BY 'flasky';
 GRANT ALL PRIVILEGES ON flasky . * TO 'flasky'@'%';
 ```
 
@@ -148,7 +148,7 @@ GRANT ALL PRIVILEGES ON DATABASE flasky TO flasky;
 
 For production setup:
 ```sql
-CREATE USER flasky WITH PASSWORD 'flasky.2025';
+CREATE USER flasky WITH PASSWORD 'flasky';
 CREATE DATABASE flasky OWNER flasky;
 GRANT ALL PRIVILEGES ON DATABASE flasky TO flasky;
 ```
