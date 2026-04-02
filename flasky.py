@@ -55,7 +55,6 @@ def test(coverage, test_names):
         COV.xml_report(outfile=os.path.join(covdir, 'coverage.xml'))
         print('HTML version: file://%s/index.html' % covdir)
         print('XML version: file://%s/coverage.xml' % covdir)
-        COV.erase()
 
 
 @app.cli.command()
