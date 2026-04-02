@@ -52,8 +52,9 @@ def test(coverage, test_names):
         basedir = os.path.abspath(os.path.dirname(__file__))
         covdir = os.path.join(basedir, 'tmp/coverage')
         COV.html_report(directory=covdir)
+        COV.xml_report(outfile=os.path.join(covdir, 'coverage.xml'))
         print('HTML version: file://%s/index.html' % covdir)
-        COV.erase()
+        print('XML version: file://%s/coverage.xml' % covdir)
 
 
 @app.cli.command()
