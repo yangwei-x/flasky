@@ -80,7 +80,7 @@ markupsafe==3.0.2
     #   wtforms
 packaging==25.0
     # via flask-moment
-psycopg2-binary==2.9.10
+pymysql==1.1.2
     # via -r requirements/base.in
 python-dateutil==2.9.0.post0
     # via -r requirements/base.in

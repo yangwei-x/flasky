@@ -115,12 +115,12 @@ outcome==1.3.0.post0
     #   trio-websocket
 packaging==25.0
     # via flask-moment
-psycopg2-binary==2.9.10
-    # via -r requirements/base.in
 pygments==2.19.2
     # via
     #   httpie
     #   rich
+pymysql==1.1.2
+    # via -r requirements/base.in
 pysocks==1.7.1
     # via
     #   requests

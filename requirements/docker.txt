@@ -84,10 +84,10 @@ packaging==25.0
     # via
     #   flask-moment
     #   gunicorn
-psycopg2-binary==2.9.10
-    # via -r requirements/base.in
 pymysql==1.1.1
-    # via -r requirements/docker.in
+    # via
+    #   -r requirements/base.in
+    #   -r requirements/docker.in
 python-dateutil==2.9.0.post0
     # via -r requirements/base.in
 python-dotenv==1.1.1

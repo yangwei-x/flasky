@@ -17,7 +17,9 @@ itsdangerous
 Markdown
 MarkupSafe
 # PostgreSQL adapter (comment out if not using PostgreSQL)
-psycopg2-binary
+# psycopg2-binary
+# MySQL adapter
+PyMySQL
 python-dateutil
 python-dotenv
 python-editor
