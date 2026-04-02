@@ -1,0 +1,45 @@
+name: Flasky CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements/dev.txt
+
+    - name: Run tests with coverage
+      env:
+        FLASK_CONFIG: testing
+        FLASK_COVERAGE: 1
+      run: |
+        python -m flask test --coverage
+
+    - name: Clean up coverage paths
+      run: |
+        # Optional: remove absolute path from HTML files if needed for artifacts
+        # But usually not necessary for GitHub actions artifacts
+        ls -R tmp/coverage
+
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: coverage-report
+        path: tmp/coverage

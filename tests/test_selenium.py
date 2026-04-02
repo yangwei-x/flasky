@@ -3,6 +3,7 @@ import threading
 import time
 import unittest
 from selenium import webdriver
+from selenium.webdriver.common.by import By
 from app import create_app, db, fake
 from app.models import Role, User, Post
 
@@ -10,13 +11,16 @@ from app.models import Role, User, Post
 class SeleniumTestCase(unittest.TestCase):
     client = None
     
+    server_port = 5000
+
     @classmethod
     def setUpClass(cls):
         # start Chrome
         options = webdriver.ChromeOptions()
-        options.add_argument('headless')
+        options.add_argument('--headless')
+        options.add_argument('--window-size=1280,800')
         try:
-            cls.client = webdriver.Chrome(chrome_options=options)
+            cls.client = webdriver.Chrome(options=options)
         except:
             pass
 
@@ -47,20 +51,27 @@ class SeleniumTestCase(unittest.TestCase):
             db.session.commit()
 
             # start the Flask server in a thread
-            cls.server_thread = threading.Thread(target=cls.app.run,
-                                                 kwargs={'debug': False})
+            cls.server_thread = threading.Thread(
+                target=cls.app.run,
+                kwargs={'debug': False, 'port': cls.server_port,
+                        'use_reloader': False})
+            cls.server_thread.daemon = True
             cls.server_thread.start()
 
             # give the server a second to ensure it is up
-            time.sleep(1) 
+            time.sleep(1)
+
+            # if server failed to start, skip tests
+            if not cls.server_thread.is_alive():
+                cls.client.quit()
+                cls.client = None
+                cls.app_context.pop()
 
     @classmethod
     def tearDownClass(cls):
         if cls.client:
-            # stop the flask server and the browser
-            cls.client.get('http://localhost:5000/shutdown')
+            # stop the browser
             cls.client.quit()
-            cls.server_thread.join()
 
             # destroy database
             db.drop_all()
@@ -78,21 +89,20 @@ class SeleniumTestCase(unittest.TestCase):
     
     def test_admin_home_page(self):
         # navigate to home page
-        self.client.get('http://localhost:5000/')
-        self.assertTrue(re.search('Hello,\s+Stranger!',
+        self.client.get('http://localhost:{}/'.format(self.server_port))
+        self.assertTrue(re.search(r'Hello,\s+Stranger!',
                                   self.client.page_source))
 
         # navigate to login page
-        self.client.find_element_by_link_text('Log In').click()
+        self.client.find_element(By.LINK_TEXT, 'Log In').click()
         self.assertIn('<h1>Login</h1>', self.client.page_source)
 
         # login
-        self.client.find_element_by_name('email').\
-            send_keys('john@example.com')
-        self.client.find_element_by_name('password').send_keys('cat')
-        self.client.find_element_by_name('submit').click()
-        self.assertTrue(re.search('Hello,\s+john!', self.client.page_source))
+        self.client.find_element(By.NAME, 'email').send_keys('john@example.com')
+        self.client.find_element(By.NAME, 'password').send_keys('cat')
+        self.client.find_element(By.NAME, 'submit').click()
+        self.assertTrue(re.search(r'Hello,\s+john!', self.client.page_source))
 
         # navigate to the user's profile page
-        self.client.find_element_by_link_text('Profile').click()
+        self.client.find_element(By.LINK_TEXT, 'Profile').click()
         self.assertIn('<h1>john</h1>', self.client.page_source)

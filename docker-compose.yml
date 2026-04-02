@@ -2,6 +2,6 @@ services:
   flasky:
     build: .
     ports:
-      - "8060:5000"
+      - "8000:5000"
     env_file: .env
     restart: always

@@ -1,7 +1,7 @@
-FROM python:3.10-alpine
+FROM python:3.12-alpine
 
-ENV FLASK_APP flasky.py
-ENV FLASK_CONFIG production
+ENV FLASK_APP=flasky.py
+ENV FLASK_CONFIG=production
 
 # Install Python dependencies as root first
 WORKDIR /home/flasky
