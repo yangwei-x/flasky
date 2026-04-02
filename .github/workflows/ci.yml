@@ -33,11 +33,22 @@ jobs:
       run: |
         python -m flask test --coverage
 
-    - name: Clean up coverage paths
+    - name: Generate Coverage Report
       run: |
-        # Optional: remove absolute path from HTML files if needed for artifacts
-        # But usually not necessary for GitHub actions artifacts
-        ls -R tmp/coverage
+        pip install coverage-badge
+        coverage report
+        coverage-badge -o coverage.svg
+
+    - name: Pytest coverage COMMENT
+      uses: MishaKav/pytest-coverage-comment@main
+      if: github.event_name == 'pull_request'
+      with:
+        pytest-xml-coverage-path: ./tmp/coverage/coverage.xml
+        title: Coverage Report
+        badge-title: Coverage
+        hide-badge: false
+        hide-report: false
+        create-new-comment: false
 
     - name: Upload coverage report
       uses: actions/upload-artifact@v4
