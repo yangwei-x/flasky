@@ -1,5 +1,6 @@
 from datetime import datetime
 import hashlib
+from urllib.parse import quote
 from werkzeug.security import generate_password_hash, check_password_hash
 import time
 from itsdangerous import BadData, URLSafeTimedSerializer as Serializer
@@ -85,6 +86,10 @@ class User(UserMixin, db.Model):
     __tablename__ = 'users'
     TOKEN_SALT = 'salft-for-flasky'
     TOKEN_EXPIRATION = 3600
+    AVATAR_COLORS = (
+        '#2D6A4F', '#1D4ED8', '#B45309', '#BE123C',
+        '#0F766E', '#7C3AED', '#C2410C', '#334155'
+    )
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(64), unique=True, index=True)
     username = db.Column(db.String(64), unique=True, index=True)
@@ -96,7 +101,7 @@ class User(UserMixin, db.Model):
     about_me = db.Column(db.Text())
     member_since = db.Column(db.DateTime(), default=datetime.utcnow)
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
-    avatar_hash = db.Column(db.String(32))
+    avatar_filename = db.Column(db.String(128))
     posts = db.relationship('Post', backref='author', lazy='dynamic')
     followed = db.relationship('Follow',
                                foreign_keys=[Follow.follower_id],
@@ -125,8 +130,6 @@ class User(UserMixin, db.Model):
                 self.role = Role.query.filter_by(name='Administrator').first()
             if self.role is None:
                 self.role = Role.query.filter_by(default=True).first()
-        if self.email is not None and self.avatar_hash is None:
-            self.avatar_hash = self.gravatar_hash()
         self.follow(self)
 
     @property
@@ -209,9 +212,12 @@ class User(UserMixin, db.Model):
         if self.query.filter_by(email=new_email).first() is not None:
             return False
         self.email = new_email
-        self.avatar_hash = self.gravatar_hash()
         db.session.add(self)
         return True
+
+    def set_avatar(self, filename):
+        self.avatar_filename = filename
+        db.session.add(self)
 
     def can(self, perm):
         return self.role is not None and self.role.has_permission(perm)
@@ -223,14 +229,48 @@ class User(UserMixin, db.Model):
         self.last_seen = datetime.utcnow()
         db.session.add(self)
 
-    def gravatar_hash(self):
-        return hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
+    def avatar_initials(self):
+        for source in (self.name, self.username, self.email):
+            if not source:
+                continue
+            stripped = source.strip()
+            if stripped:
+                return stripped[0].upper()
+        return '?'
+
+    def avatar_background(self):
+        seed = self.username or self.email or str(self.id or '')
+        digest = hashlib.md5(seed.encode('utf-8')).hexdigest()
+        return self.AVATAR_COLORS[int(digest[:2], 16) % len(self.AVATAR_COLORS)]
+
+    def generated_avatar_url(self, size=100):
+        initials = self.avatar_initials()
+        background = self.avatar_background()
+        font_size = max(int(size * 0.39), 12)
+        svg = (
+            '<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" '
+            'viewBox="0 0 {size} {size}">'
+            '<rect width="{size}" height="{size}" rx="{radius}" fill="{background}" />'
+            '<text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" '
+            'fill="#ffffff" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" '
+            'font-size="{font_size}" font-weight="700">{initials}</text>'
+            '</svg>'
+        ).format(
+            size=size,
+            radius=size // 5,
+            background=background,
+            font_size=font_size,
+            initials=initials
+        )
+        return 'data:image/svg+xml;charset=utf-8,{svg}'.format(svg=quote(svg))
+
+    def avatar_url(self, size=100):
+        if self.avatar_filename:
+            return url_for('static', filename='uploads/avatars/%s' % self.avatar_filename)
+        return self.generated_avatar_url(size=size)
 
     def gravatar(self, size=100, default='identicon', rating='g'):
-        url = 'https://secure.gravatar.com/avatar'
-        hash = self.avatar_hash or self.gravatar_hash()
-        return '{url}/{hash}?s={size}&d={default}&r={rating}'.format(
-            url=url, hash=hash, size=size, default=default, rating=rating)
+        return self.avatar_url(size=size)
 
     def follow(self, user):
         if not self.is_following(user):
@@ -266,8 +306,7 @@ class User(UserMixin, db.Model):
             'member_since': self.member_since,
             'last_seen': self.last_seen,
             'posts_url': url_for('api.get_user_posts', id=self.id),
-            'followed_posts_url': url_for('api.get_user_followed_posts',
-                                          id=self.id),
+            'followed_posts_url': url_for('api.get_user_followed_posts', id=self.id),
             'post_count': self.posts.count()
         }
         return json_user
@@ -325,9 +364,9 @@ class Post(db.Model):
             'body': self.body,
             'body_html': self.body_html,
             'timestamp': self.timestamp,
-            'author_url': url_for('api.get_user', id=self.author_id),
-            'comments_url': url_for('api.get_post_comments', id=self.id),
-            'comment_count': self.comments.count()
+            'author': url_for('api.get_user', id=self.author_id),
+            'comments': url_for('api.get_post_comments', id=self.id),
+            'comments_count': self.comments.count()
         }
         return json_post
 
@@ -338,8 +377,8 @@ class Post(db.Model):
             raise ValidationError('post does not have a body')
         return Post(body=body)
 
-
-db.event.listen(Post.body, 'set', Post.on_changed_body)
+    def __repr__(self):
+        return '<Post %r>' % self.body[:20]
 
 
 class Comment(db.Model):
@@ -347,8 +386,8 @@ class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     body = db.Column(db.Text)
     body_html = db.Column(db.Text)
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     disabled = db.Column(db.Boolean)
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
 
@@ -363,11 +402,11 @@ class Comment(db.Model):
     def to_json(self):
         json_comment = {
             'url': url_for('api.get_comment', id=self.id),
-            'post_url': url_for('api.get_post', id=self.post_id),
             'body': self.body,
             'body_html': self.body_html,
             'timestamp': self.timestamp,
-            'author_url': url_for('api.get_user', id=self.author_id),
+            'author': url_for('api.get_user', id=self.author_id),
+            'post': url_for('api.get_post', id=self.post_id)
         }
         return json_comment
 
@@ -378,5 +417,9 @@ class Comment(db.Model):
             raise ValidationError('comment does not have a body')
         return Comment(body=body)
 
+    def __repr__(self):
+        return '<Comment %r>' % self.body[:20]
 
+
+db.event.listen(Post.body, 'set', Post.on_changed_body)
 db.event.listen(Comment.body, 'set', Comment.on_changed_body)

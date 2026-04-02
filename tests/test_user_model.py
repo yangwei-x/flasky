@@ -162,13 +162,23 @@ class UserModelTestCase(unittest.TestCase):
         with self.app.test_request_context('/'):
             gravatar = u.gravatar()
             gravatar_256 = u.gravatar(size=256)
-            gravatar_pg = u.gravatar(rating='pg')
-            gravatar_retro = u.gravatar(default='retro')
-        self.assertTrue('https://secure.gravatar.com/avatar/' +
-                        'd4c74594d841139328695756648b6bd6'in gravatar)
-        self.assertTrue('s=256' in gravatar_256)
-        self.assertTrue('r=pg' in gravatar_pg)
-        self.assertTrue('d=retro' in gravatar_retro)
+        self.assertTrue(gravatar.startswith('data:image/svg+xml;charset=utf-8,'))
+        self.assertTrue('width%3D%22256%22' in gravatar_256)
+        self.assertTrue('%3EJ%3C/text%3E' in gravatar)
+
+    def test_generated_avatar_prefers_name_initial(self):
+        u = User(name='William', username='bill', email='john@example.com', password='cat')
+        with self.app.test_request_context('/'):
+            avatar = u.avatar_url(size=128)
+        self.assertTrue('%3EW%3C/text%3E' in avatar)
+        self.assertTrue('width%3D%22128%22' in avatar)
+
+    def test_uploaded_avatar_url(self):
+        u = User(email='john@example.com', password='cat')
+        u.set_avatar('john.png')
+        with self.app.test_request_context('/'):
+            self.assertEqual('/static/uploads/avatars/john.png', u.avatar_url())
+            self.assertEqual('/static/uploads/avatars/john.png', u.gravatar())
 
     def test_follows(self):
         u1 = User(email='john@example.com', password='cat')
