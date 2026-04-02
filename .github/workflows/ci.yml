@@ -27,6 +27,7 @@ jobs:
 
     - name: Run tests with coverage
       env:
+        FLASK_APP: flasky.py
         FLASK_CONFIG: testing
         FLASK_COVERAGE: 1
       run: |

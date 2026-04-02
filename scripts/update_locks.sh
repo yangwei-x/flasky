@@ -35,8 +35,8 @@ python -m pip install -q -U pip pip-tools >/dev/null 2>&1
 
 FAILED=0
 for name in "${TARGETS[@]}"; do
-  in_file="$REQ_DIR/${name}.in"
-  out_file="$REQ_DIR/${name}.txt"
+  in_file="requirements/${name}.in"
+  out_file="requirements/${name}.txt"
   if [[ ! -f "$in_file" ]]; then
     echo "[skip] missing $in_file" >&2
     continue
